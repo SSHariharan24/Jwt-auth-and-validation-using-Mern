@@ -8,7 +8,7 @@ export const User = () => {
   const [filterusers,setFilterusers] = useState("")
  axios.defaults.withCredentials = true
   useEffect(()=>{
-    axios.get('http://localhost:4000/')
+    axios.get('http://localhost:4000/get')
     .then((result) => {
       setUsers(result.data)
     })

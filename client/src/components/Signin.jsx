@@ -3,7 +3,7 @@ import { useState } from 'react'
 import "bootstrap/dist/css/bootstrap.min.css";
 import axios from 'axios'
 // import './App.css'
-import { useNavigate } from 'react-router-dom';
+import { useNavigate,Link } from 'react-router-dom';
 
 export const Signin = () => {
     
@@ -59,6 +59,8 @@ export const Signin = () => {
           Sign In
         </button>
       </form>
+      <br></br>
+      <Link to="/forget-password" className='text-indigo-600 hover:underline'>Forgot Password</Link>
       <div className="text-center mt-4">
         <a href="/register" className="text-indigo-600 hover:underline">
           Don’t have an account? Sign Up

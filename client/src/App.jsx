@@ -7,8 +7,9 @@ import UpdateUser from './components/UpdateUser';
 import Signup from "./components/Signup";
 import Signin from "./components/Signin";
 import Home from "./components/Home"
+import ForgetPassword from "./components/ForgetPassword"
 import {ToastContainer} from "react-toastify"
-
+import ResetPassword from './components/ResetPassword';
 function App() {
   return (
     <div>
@@ -21,7 +22,8 @@ function App() {
         <Route path='/' element={<Signup />}></Route>
         <Route path='/create' element={<CreateUser />}></Route>
         <Route path='/update/:id' element={<UpdateUser />}></Route>
-       
+        <Route path='/forget-password' element={<ForgetPassword/>}></Route>
+        <Route path='/reset-password/:token' element={<ResetPassword/>}></Route>
       </Routes>
       <ToastContainer/>
       </BrowserRouter>
