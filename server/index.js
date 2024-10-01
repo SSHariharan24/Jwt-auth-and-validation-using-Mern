@@ -6,7 +6,11 @@ const RegisterModel = require('./models/Register') // this is signin and signup 
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 const cookieParser = require('cookie-parser')
+const nodemailer = require('nodemailer');
+const dotenv = require('dotenv')
+dotenv.config()
 const app = express()
+
 app.use(cors(
     {
     origin:["http://localhost:5173"],
@@ -17,7 +21,6 @@ app.use(cors(
 
 app.use(express.json())
 app.use(cookieParser())
-const PORT = 4000
 
 mongoose.connect("mongodb://localhost/crud")
 
@@ -40,7 +43,7 @@ const verifyUser = (req,res,next)=>{
         })
     }
 }
-app.get('/',verifyUser,(req,res)=>{
+app.get('/get',verifyUser,(req,res)=>{
     userModel.find({})
     .then(users => res.json(users))
     .catch(err => console.log(err))
@@ -80,46 +83,7 @@ app.delete("/deleteUser/:id",(req,res)=>{
     .catch(err => console.log(err))
 })
 
-
-//this api is used for signin and signup
-// app.get("/", (req, res) => {
-//     res.json("Hello");
-// })
-
-// app.post('/login',(req,res)=>{
-//     const{email,password} = req.body;
-//     RegisterModel.findOne({email:email})
-//     .then(user =>{
-//         if(user){
-//             if(user.password === password){
-//                 res.json('success')
-//             }else{
-//                 res.json('The password is incorrect')
-//             }
-//         }else{
-//             res.json('No record existed')
-//         }
-//     })
-// })
-
-
-// app.post('/register', (req, res) => {
-//     const {name, email, password} = req.body;
-//     RegisterModel.findOne({email: email})
-//     .then(user => {
-//         if(user) {
-//             res.json("Already have an account")
-//         } else {
-//             RegisterModel.create({name: name, email: email, password: password})
-//             .then(result => res.json(result))
-//             .catch(err => res.json(err))
-//         }
-//     }).catch(err => res.json(err))
-// })
-
-
-
-//this code is used for authentication login and signin
+//this below code of api is used for the sign,signup,forgetpassword and resetpassword using jwt authentication 
 app.post('/login',(req,res)=>{
     const{email,password} = req.body;
     RegisterModel.findOne({email:email})
@@ -152,10 +116,62 @@ app.post('/register', (req, res) => {
     }).catch(err => res.json(err))
 })
 
+app.post("/forgot-password", async (req, res) => {
+    const { email } = req.body;
+    try {
+      const user = await RegisterModel.findOne({ email });
+      if (!user) {
+        return res.json({ message: "user not registered" });
+      }
+      const token = jwt.sign({ id: user._id }, process.env.KEY, {
+        expiresIn: "5m",
+      });
+  
+      var transporter = nodemailer.createTransport({
+        service: "gmail",
+        auth: {
+          user: process.env.USER,
+          pass: process.env.PASS
+        },
+      });
+      const encodedToken = encodeURIComponent(token).replace(/\./g, "%2E");
+      var mailOptions = {
+        from: process.env.MAIL,
+        to: email,
+        subject: "Reset Password",
+        text: `http://localhost:5173/reset-password/${encodedToken}`,
+      };
+  
+      transporter.sendMail(mailOptions, function (error, info) {
+        if (error) {
+          return res.json({ message: "error sending email" });
+        } else {
+          return res.json({ status: true, message: "email sent" });
+        }
+      });
+    } catch (err) {
+      console.log(err);
+    }
+  });
+
+
+  app.post("/reset-password/:token", async (req, res) => {
+    const { token } = req.params;
+    const { password } = req.body;
+    try {
+      const decoded = jwt.verify(token, process.env.KEY);
+      const id = decoded.id;
+      const hashPassword = await bcrypt.hash(password, 10);
+      await RegisterModel.findByIdAndUpdate({ _id: id }, { password: hashPassword });
+      return res.json({ status: true, message: "updated password" });
+    } catch (err) {
+      return res.json("invalid token");
+    }
+  });    
 
 
 
-app.listen(PORT, ()=>{
-    console.log(`server is running ${PORT}` );
+app.listen(process.env.PORT, ()=>{
+    console.log(`server is running ${process.env.PORT}` );
     
 })
