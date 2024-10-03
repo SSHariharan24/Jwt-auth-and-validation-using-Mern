@@ -5,12 +5,14 @@ const userModel = require('./models/Users')        // this is crud schema
 const RegisterModel = require('./models/Register') // this is signin and signup schema 
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
+const bodyParser = require('body-parser');
+const emailRoutes = require('./routes/sendEmail');
 const cookieParser = require('cookie-parser')
 const nodemailer = require('nodemailer');
 const dotenv = require('dotenv')
 dotenv.config()
 const app = express()
-
+app.use(bodyParser.json());
 app.use(cors(
     {
     origin:["http://localhost:5173"],
@@ -24,6 +26,7 @@ app.use(cookieParser())
 
 mongoose.connect("mongodb://localhost/crud")
 
+app.use('/api', emailRoutes);
 // this api is used for crud operation
 const verifyUser = (req,res,next)=>{
     const token = req.cookies.token
